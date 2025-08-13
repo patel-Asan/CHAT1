@@ -1,0 +1,25 @@
+ @media (max-width: 640px) {
+          .profile-container {
+            flex-direction: column-reverse !important;
+            text-align: center;
+          }
+          .profile-preview {
+            padding: 20px 0;
+          }
+        }
+
+
+         @keyframes pulseGlow {
+    0% { box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+    50% { box-shadow: 0 0 20px rgba(255,255,255,0.7); }
+    100% { box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+  }
+  @keyframes bounceSlow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @keyframes textWave {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-2px); }
+    75% { transform: translateY(2px); }
+  }
