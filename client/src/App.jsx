@@ -8,7 +8,7 @@ import { Toaster } from "react-hot-toast";
 
 import { AuthContext } from "../src/Context/AuthContext";
 // background image
-import bgImage from "./assest/bgImage.svg";
+import bgImage from "../public/bgImage.svg";
 
 function App() {
   const { authUser} = useContext(AuthContext);
