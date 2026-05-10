@@ -119,6 +119,9 @@ export const ChatProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [unseenMessages, setUnseenMessages] = useState({});
+  const [isTyping, setIsTyping] = useState(false);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState(null);
 
   const { socket, axios } = useContext(AuthContext);
 
@@ -152,7 +155,63 @@ export const ChatProvider = ({ children }) => {
         messageData
       );
       if (data.success) {
-        setMessages((prev) => [...prev, data.newMessage]);
+        setMessages((prev) => [...prev, data.data]);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const getGroups = async () => {
+    try {
+      const { data } = await axios.get("/api/groups");
+      if (data.success) setGroups(data.data);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const createGroup = async (name, memberIds) => {
+    try {
+      const { data } = await axios.post("/api/groups/create", { name, members: memberIds });
+      return data;
+    } catch (error) {
+      toast.error(error.message);
+      return { success: false };
+    }
+  };
+
+  const getGroupMessages = async (groupId) => {
+    try {
+      const { data } = await axios.get(`/api/groups/${groupId}/messages`);
+      if (data.success) setMessages(data.data);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const sendGroupMessage = async (messageData) => {
+    try {
+      const { data } = await axios.post(`/api/groups/${selectedGroup._id}/send`, messageData);
+      if (data.success) {
+        setMessages((prev) => [...prev, data.data]);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const deleteMessage = async (messageId) => {
+    try {
+      const { data } = await axios.delete(`/api/messages/${messageId}`);
+      if (data.success) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg._id === messageId ? { ...msg, deleted: true, text: "", image: "", file: {} } : msg
+          )
+        );
       } else {
         toast.error(data.message);
       }
@@ -164,10 +223,10 @@ export const ChatProvider = ({ children }) => {
   const subscribeToMessages = () => {
     if (!socket) return;
     socket.on("newMessage", (newMessage) => {
-      if (selectedUser && newMessage.sender._id === selectedUser._id) {
+      if (selectedUser && String(newMessage.senderId) === String(selectedUser._id)) {
         newMessage.seen = true;
         setMessages((prev) => [...prev, newMessage]);
-        axios.post(`/api/messages/seen/${selectedUser._id}`);
+        axios.put(`/api/messages/seen/${newMessage.senderId}`);
       } else {
         setUnseenMessages((prev) => ({
           ...prev,
@@ -177,11 +236,49 @@ export const ChatProvider = ({ children }) => {
         }));
       }
     });
+
+    socket.on("messageDeleted", ({ messageId }) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageId ? { ...msg, deleted: true, text: "", image: "", file: {} } : msg
+        )
+      );
+    });
+
+    socket.on("typing", ({ senderId }) => {
+      if (selectedUser && String(senderId) === String(selectedUser._id)) {
+        setIsTyping(true);
+      }
+    });
+
+    socket.on("stopTyping", ({ senderId }) => {
+      if (selectedUser && String(senderId) === String(selectedUser._id)) {
+        setIsTyping(false);
+      }
+    });
+
+    socket.on("newGroupMessage", ({ groupId, message }) => {
+      if (selectedGroup && String(groupId) === String(selectedGroup._id)) {
+        setMessages((prev) => [...prev, message]);
+      }
+    });
+
+    socket.on("groupCreated", (group) => {
+      setGroups((prev) => {
+        const exists = prev.find((g) => g._id === group._id);
+        return exists ? prev : [...prev, group];
+      });
+    });
   };
 
   const unsubscribeFromMessages = () => {
     if (!socket) return;
     socket.off("newMessage");
+    socket.off("messageDeleted");
+    socket.off("typing");
+    socket.off("stopTyping");
+    socket.off("newGroupMessage");
+    socket.off("groupCreated");
   };
 
   useEffect(() => {
@@ -198,9 +295,18 @@ export const ChatProvider = ({ children }) => {
         setSelectedUser,
         unseenMessages,
         setUnseenMessages,
+        groups,
+        selectedGroup,
+        setSelectedGroup,
         getUsers,
+        getGroups,
         getMessages,
-        sendMessage, // ✅ lowercase & fixed
+        getGroupMessages,
+        sendMessage,
+        sendGroupMessage,
+        createGroup,
+        deleteMessage,
+        isTyping,
       }}
     >
       {children}

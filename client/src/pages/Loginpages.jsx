@@ -36,7 +36,7 @@ const LoginPage = () => {
       alignItems: "center",
       gap: "2rem",
       backdropFilter: "blur(20px)",
-      flexWrap: "wrap", // Makes it responsive on mobile
+      flexWrap: "wrap",
       padding: "20px"
     },
     logo: {
@@ -95,14 +95,12 @@ const LoginPage = () => {
 
   return (
     <div style={styles.container}>
-      {/* ------- left ------- */}
       <img
         src={assets.logo_big}
         alt="Logo"
         style={styles.logo}
       />
 
-      {/* ------- right ------- */}
       <form onSubmit={handleSubmit} style={styles.form}>
         <h2 style={styles.heading}>
           {currState}

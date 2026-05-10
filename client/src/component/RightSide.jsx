@@ -33,10 +33,17 @@ useEffect(() => {
         backgroundColor: "rgba(129,133,178,0.1)",
         color: "white",
         width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
         position: "relative",
-        overflowY: "scroll",
         transition: "all 0.5s ease-in-out",
-        paddingBottom: "50px",
+    };
+
+    const scrollAreaStyle = {
+        flex: 1,
+        overflowY: "auto",
+        paddingBottom: "10px",
     };
 
     const profileSection = {
@@ -113,71 +120,64 @@ useEffect(() => {
         background: "linear-gradient(135deg, #ff4d4d, #ff0000)",
         color: "white",
         border: "none",
-        padding: "10px 20px",
-        borderRadius: "6px",
-        margin: "20px auto",
+        padding: "12px 20px",
+        borderRadius: "8px",
+        margin: "16px",
         display: "block",
+        width: "calc(100% - 32px)",
         cursor: "pointer",
-        fontWeight: "500",
+        fontWeight: "600",
+        fontSize: "14px",
+        letterSpacing: "0.5px",
         transition: "transform 0.3s ease, background 0.3s ease",
+        boxShadow: "0 4px 15px rgba(255,0,0,0.3)",
     };
 
     return (
         <div style={containerStyle}>
-            <div style={profileSection}>
-                <img
-                    src={selectedUser?.profilePic || assets.avatar_icon}
-                    alt="Profile"
-                    style={avatarStyle}
-                    onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                    onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                />
-               <h1 style={nameStyle}>
-  <span
-    style={{
-      ...statusDot,
-      backgroundColor: onlineUsers.includes(selectedUser._id) ? "green" : "gray",
-    }}
-  ></span>
-  {selectedUser.fullName}
-</h1>
+            <div style={scrollAreaStyle}>
+                <div style={profileSection}>
+                    <img
+                        src={selectedUser?.profilePic || assets.avatar_icon}
+                        alt="Profile"
+                        style={avatarStyle}
+                        onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+                        onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                    />
+                   <h1 style={nameStyle}>
+      <span
+        style={{
+          ...statusDot,
+          backgroundColor: onlineUsers.includes(selectedUser._id) ? "green" : "gray",
+        }}
+      ></span>
+      {selectedUser.fullName}
+    </h1>
 
-                <p style={bioStyle}>{selectedUser.bio}</p>
-            </div>
+                    <p style={bioStyle}>{selectedUser.bio}</p>
+                </div>
 
-            <hr style={hrStyle} />
+                <hr style={hrStyle} />
 
-            <div style={mediaContainer}>
-                <p>Media</p>
-                <div style={mediaGrid}>
-                    {msgImages.map((url, index) => (
-                        <div key={index} onClick={() => window.open(url)}>
-                            <img
-                                src={url}
-                                alt=""
-                                style={imgThumb}
-                                onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                                onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                            />
-                        </div>
-                    ))}
+                <div style={mediaContainer}>
+                    <p>Media</p>
+                    <div style={mediaGrid}>
+                        {msgImages.map((url, index) => (
+                            <div key={index} onClick={() => window.open(url)}>
+                                <img
+                                    src={url}
+                                    alt=""
+                                    style={imgThumb}
+                                    onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+                                    onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 
-            <button
-            onClick={() => logout()}    
-                style={logoutBtn}
-                onMouseOver={(e) => {
-                    e.currentTarget.style.transform = "scale(1.05)";
-                    e.currentTarget.style.background = "linear-gradient(135deg, #ff1a1a, #cc0000)";
-                }}
-                onMouseOut={(e) => {
-                    e.currentTarget.style.transform = "scale(1)";
-                    e.currentTarget.style.background = "linear-gradient(135deg, #ff4d4d, #ff0000)";
-                }}
-            >
-                Logout
-            </button>
+          
         </div>
     );
 };

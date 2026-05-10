@@ -40,7 +40,7 @@ export const signup = async (req, res) => {
       success: true,
       message: "User created successfully",
       token,
-      userData
+      userData: newUser
     });
 
   } catch (error) {
@@ -57,6 +57,13 @@ export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const userData = await User.findOne({ email })
+
+        if (!userData) {
+            return res.json({
+                success: false,
+                message: "User not found"
+            });
+        }
 
         const ispasswordCorrect = await bcrypt.compare(password, userData.password);
 

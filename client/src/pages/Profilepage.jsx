@@ -1,12 +1,19 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import assets from '../assest/assets'; // Make sure this path is correct
+import assets from '../assest/assets';
 import '../pages/a.css';
 import { AuthContext } from '../Context/AuthContext.jsx';
 
 
 const ProfilePage = () => {
 const { authUser, updateProfile } = useContext(AuthContext);
+const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+
+useEffect(() => {
+  const handleResize = () => setIsMobile(window.innerWidth < 640);
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
 
 
   const [selectedImg, setSelectedImg] = useState(null);
@@ -14,26 +21,22 @@ const { authUser, updateProfile } = useContext(AuthContext);
   const [bio, setBio] = useState(authUser.bio);
   const navigate = useNavigate();
 
-  const handleSubmit =async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedImg) {
-      await updateProfile({
-        fullName: name,
-        bio,
-      });
+      await updateProfile({ fullName: name, bio });
+      navigate("/");
+      return;
+    }
 
-    navigate("/");
-    return; // Change path as needed
-  };
-
-  const reader = new FileReader();
-  reader.readAsDataURL(selectedImg);
-  reader.onloadend = async () => {
-    const base64Image = reader.result;
-    await updateProfile({profilePic: base64Image, fullName: name, bio });
-    navigate("/");
+    const reader = new FileReader();
+    reader.readAsDataURL(selectedImg);
+    reader.onloadend = async () => {
+      const base64Image = reader.result;
+      await updateProfile({ profilePic: base64Image, fullName: name, bio });
+      navigate("/");
+    };
   }
-}
 
   return (
     <>
@@ -42,7 +45,7 @@ const { authUser, updateProfile } = useContext(AuthContext);
       <div
         style={{
           minHeight: "100vh",
-          backgroundImage: `url(${assets.bg_image})`,
+          backgroundImage: `url(${assets.bgImage})`,
           backgroundSize: "cover",
           backgroundRepeat: "no-repeat",
           display: "flex",
@@ -54,16 +57,17 @@ const { authUser, updateProfile } = useContext(AuthContext);
         <div
           className="profile-container"
           style={{
-            width: "83%",
+            width: isMobile ? "100%" : "83%",
             maxWidth: "800px",
             backdropFilter: "blur(20px)",
             color: "#e5e7eb",
-            border: "2px solid #4b5563",
+            border: isMobile ? "none" : "2px solid #4b5563",
             display: "flex",
             justifyContent: "space-between",
-            borderRadius: "10px",
+            borderRadius: isMobile ? "0" : "10px",
             boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             overflow: "hidden",
+            minHeight: isMobile ? "100dvh" : "auto",
           }}
         >
           {/* Form Section */}
@@ -72,8 +76,8 @@ const { authUser, updateProfile } = useContext(AuthContext);
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "1.25rem",
-              padding: "1.5rem",
+              gap: isMobile ? "1rem" : "1.25rem",
+              padding: isMobile ? "1.25rem" : "1.5rem",
               flex: 1,
             }}
           >
@@ -178,7 +182,7 @@ const { authUser, updateProfile } = useContext(AuthContext);
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: "1.5rem",
+              padding: isMobile ? "1rem" : "1.5rem",
             }}
           >
             <img
@@ -189,8 +193,8 @@ const { authUser, updateProfile } = useContext(AuthContext);
               }
               alt="Profile Preview"
               style={{
-                width: "160px",
-                height: "160px",
+                width: isMobile ? "100px" : "160px",
+                height: isMobile ? "100px" : "160px",
                 objectFit: "cover",
                 borderRadius: "50%",
                 border: "4px solid #7c3aed",

@@ -5,6 +5,7 @@ import http from "http";
 import { connectDB } from "./lib/db.js";
 import userRouter from "./routes/userroute.js";
 import messageRouter from "./routes/messagerotes.js";
+import groupRouter from "./routes/grouprotes.js";
 import { Server } from "socket.io";
 
 // Create Express app and HTTP server
@@ -30,6 +31,21 @@ io.on("connection", (socket) => {
   //Emit online users to all clients
   io.emit("onlineUsers", Object.keys(userSocketMap));
 
+  // Typing events
+  socket.on("typing", ({ receiverId }) => {
+    const receiverSocket = userSocketMap[receiverId];
+    if (receiverSocket) {
+      io.to(receiverSocket).emit("typing", { senderId: userId });
+    }
+  });
+
+  socket.on("stopTyping", ({ receiverId }) => {
+    const receiverSocket = userSocketMap[receiverId];
+    if (receiverSocket) {
+      io.to(receiverSocket).emit("stopTyping", { senderId: userId });
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", userId);
     delete userSocketMap[userId]; 
@@ -48,6 +64,7 @@ app.use(cors());
 app.use("/api/status", (req, res) => res.send("Server is live"));
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
+app.use("/api/groups", groupRouter);
 
 //connect mongo
 await connectDB();

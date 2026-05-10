@@ -7,8 +7,8 @@ import LoginPage from "./pages/Loginpages";
 import { Toaster } from "react-hot-toast";
 
 import { AuthContext } from "../src/Context/AuthContext";
-// background image
-import bgImage from "../public/bgImage.svg";
+// background image (served from /public at root path)
+const bgImage = "/bgImage.svg";
 
 function App() {
   const { authUser} = useContext(AuthContext);

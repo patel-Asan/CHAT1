@@ -10,6 +10,8 @@ const HomePage = () => {
 
   const chatContainerRef = useRef(null);
   const scrollEndRef = useRef(null);
+  const isMobile = windowWidth < 768;
+  const isDesktop = windowWidth >= 1024;
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -18,19 +20,16 @@ const HomePage = () => {
   }, []);
 
   const getGridTemplate = () => {
-    if (windowWidth >= 1024) return "1fr 1.8fr 1fr"; // Desktop
-    if (windowWidth >= 768) return "1fr 2fr";       // Tablet
-    return "1fr";                                    // Mobile
+    if (isDesktop) return "1fr 1.8fr 1fr";
+    if (windowWidth >= 768) return "1fr 2fr";
+    return "1fr";
   };
 
-  // Smooth scroll only if user is near bottom
   useEffect(() => {
     const container = chatContainerRef.current;
     if (!container) return;
-
     const isAtBottom =
       container.scrollHeight - container.scrollTop - container.clientHeight < 50;
-
     if (isAtBottom) {
       scrollEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
@@ -40,12 +39,12 @@ const HomePage = () => {
     <div
       style={{
         width: "100%",
-        height: "100vh",
+        height: "100dvh",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", // Dark gradient bg
-        color: "#e5e7eb", // light text
+        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+        color: "#e5e7eb",
       }}
     >
       <div
@@ -54,22 +53,22 @@ const HomePage = () => {
           gridTemplateColumns: getGridTemplate(),
           width: "100%",
           height: "100%",
-          maxWidth: "1440px",
-          borderRadius: "1rem",
+          maxWidth: isMobile ? "100%" : "1440px",
+          borderRadius: isMobile ? "0" : "1rem",
           overflow: "hidden",
           backdropFilter: "blur(24px)",
-          border: "2px solid rgba(255,255,255,0.08)",
+          border: isMobile ? "none" : "2px solid rgba(255,255,255,0.08)",
           boxShadow: "0 12px 32px rgba(0,0,0,0.7)",
-          background: "rgba(15,23,42,0.7)", // semi-transparent dark panel
+          background: "rgba(15,23,42,0.7)",
         }}
       >
-        {/* Sidebar */}
-        {(windowWidth >= 768 || !selectedUser) && (
+        {/* Sidebar - full width on mobile when no chat selected */}
+        {(!isMobile || !selectedUser) && (
           <div
             style={{
               overflowY: "auto",
               scrollBehavior: "smooth",
-              borderRight: "2px solid rgba(99,102,241,0.3)", // purple accent
+              borderRight: isMobile ? "none" : "2px solid rgba(99,102,241,0.3)",
               background: "rgba(31,41,55,0.6)",
             }}
           >
@@ -77,27 +76,27 @@ const HomePage = () => {
           </div>
         )}
 
-        {/* Chat Container */}
+        {/* Chat Container - full width on mobile when chat selected */}
         <div
           ref={chatContainerRef}
           style={{
             overflowY: "auto",
             scrollBehavior: "smooth",
             position: "relative",
-            background: "rgba(17,24,39,0.6)", // slightly darker chat bg
+            background: "rgba(17,24,39,0.6)",
           }}
         >
           <ChatContainer />
           <div ref={scrollEndRef}></div>
         </div>
 
-        {/* Right Panel */}
-        {windowWidth >= 1024 && (
+        {/* Right Panel - desktop only */}
+        {isDesktop && (
           <div
             style={{
               overflowY: "auto",
               scrollBehavior: "smooth",
-              borderLeft: "2px solid rgba(99,102,241,0.3)", // purple accent
+              borderLeft: "2px solid rgba(99,102,241,0.3)",
               background: "rgba(31,41,55,0.6)",
             }}
           >

@@ -8,7 +8,7 @@ const Timepass = () => {
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
 
-  const { selectedUser, messages } = useContext(ChatContext);
+  const { selectedUser, messages, setSelectedUser, setSelectedGroup } = useContext(ChatContext);
   const { logout, onlineUsers } = useContext(AuthContext);
   const [msgImages, setMsgImages] = useState([]);
 
@@ -144,7 +144,7 @@ const Timepass = () => {
       {/* Back Button */}
       <button
         style={backBtnStyle}
-        onClick={() => navigate(-1)}
+        onClick={() => { setSelectedUser(null); setSelectedGroup(null); navigate(-1); }}
         onMouseOver={(e) => {
           e.currentTarget.style.transform = "scale(1.08)";
           e.currentTarget.style.boxShadow = "0 6px 20px rgba(0, 114, 255, 0.6)";
