@@ -2,8 +2,6 @@ import express from "express";
 import "dotenv/config";
 import cors from "cors";
 import http from "http";
-import path from "path";
-import { fileURLToPath } from "url";
 import { connectDB } from "./lib/db.js";
 import userRouter from "./routes/userroute.js";
 import messageRouter from "./routes/messagerotes.js";
@@ -11,9 +9,6 @@ import groupRouter from "./routes/grouprotes.js";
 import featureRouter from "./routes/featureroutes.js";
 import { Server } from "socket.io";
 import Call from "./model/Call.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
@@ -180,12 +175,6 @@ app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
 app.use("/api/groups", groupRouter);
 app.use("/api/features", featureRouter);
-
-const clientDist = path.join(__dirname, "..", "client", "dist");
-app.use(express.static(clientDist));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(clientDist, "index.html"));
-});
 
 await connectDB();
 

@@ -1,8 +1,0 @@
-{
-  "name": "chat-app",
-  "scripts": {
-    "install": "cd server && npm install",
-    "build": "cd client && npm install && npm run build",
-    "start": "node server/server.js"
-  }
-}
