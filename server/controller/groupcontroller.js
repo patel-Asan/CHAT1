@@ -4,7 +4,7 @@ import { io, userSocketMap } from "../server.js";
 
 export const createGroup = async (req, res) => {
   try {
-    const { name, members } = req.body;
+    const { name, description, members } = req.body;
     const adminId = req.user._id;
 
     if (!name || !members || members.length === 0) {
@@ -15,21 +15,19 @@ export const createGroup = async (req, res) => {
       members.push(adminId);
     }
 
-    const group = await Group.create({ name, admin: adminId, members });
+    const group = await Group.create({ name, description, admin: adminId, admins: [adminId], members });
 
     const populated = await Group.findById(group._id)
       .populate("members", "-password")
-      .populate("admin", "-password");
+      .populate("admin", "-password")
+      .populate("admins", "-password");
 
-    const memberSocketIds = members
-      .map((m) => userSocketMap[m.toString()])
-      .filter(Boolean);
-
+    const memberSocketIds = members.map((m) => userSocketMap[m.toString()]).filter(Boolean);
     memberSocketIds.forEach((socketId) => {
       io.to(socketId).emit("groupCreated", populated);
     });
 
-    res.json({ success: true, message: "Group created", data: populated });
+    res.json({ success: true, data: populated });
   } catch (error) {
     res.json({ success: false, message: "Error creating group", error: error.message });
   }
@@ -40,7 +38,8 @@ export const getUserGroups = async (req, res) => {
     const userId = req.user._id;
     const groups = await Group.find({ members: userId })
       .populate("members", "-password")
-      .populate("admin", "-password");
+      .populate("admin", "-password")
+      .populate("admins", "-password");
     res.json({ success: true, data: groups });
   } catch (error) {
     res.json({ success: false, message: "Error fetching groups", error: error.message });
@@ -50,7 +49,10 @@ export const getUserGroups = async (req, res) => {
 export const getGroupMessages = async (req, res) => {
   try {
     const { groupId } = req.params;
-    const messages = await Message.find({ groupId }).populate("senderId", "-password");
+    const userId = req.user._id;
+    const messages = await Message.find({ groupId, deletedFor: { $ne: userId } })
+      .populate("senderId", "-password")
+      .sort({ createdAt: 1 });
     res.json({ success: true, data: messages });
   } catch (error) {
     res.json({ success: false, message: "Error fetching messages", error: error.message });
@@ -71,7 +73,6 @@ export const sendGroupMessage = async (req, res) => {
 
     let imageUrl;
     let fileData = {};
-
     const { default: cloudinary } = await import("../lib/cloudinary.js");
 
     if (image) {
@@ -80,26 +81,25 @@ export const sendGroupMessage = async (req, res) => {
     }
 
     if (file) {
-      const upload = await cloudinary.uploader.upload(file.data, {
-        resource_type: "auto",
-      });
+      const upload = await cloudinary.uploader.upload(file.data, { resource_type: "auto" });
       fileData = { url: upload.secure_url, name: file.name, type: file.type };
     }
 
+    let linkPreview = {};
+    const urlMatch = text?.match(/(https?:\/\/[^\s]+)/);
+    if (urlMatch) linkPreview = { url: urlMatch[0] };
+
     const newMessage = await Message.create({
-      senderId, groupId, text, image: imageUrl, file: fileData,
+      senderId, groupId, text, image: imageUrl, file: fileData, linkPreview,
     });
 
-    const populatedMsg = await Message.findById(newMessage._id)
-      .populate("senderId", "-password");
+    const populatedMsg = await Message.findById(newMessage._id).populate("senderId", "-password");
 
-    const memberSocketIds = group.members
-      .filter((m) => m.toString() !== senderId.toString())
-      .map((m) => userSocketMap[m.toString()])
-      .filter(Boolean);
-
-    memberSocketIds.forEach((socketId) => {
-      io.to(socketId).emit("newGroupMessage", { groupId, message: populatedMsg });
+    group.members.forEach((m) => {
+      const sid = userSocketMap[m.toString()];
+      if (sid && m.toString() !== senderId.toString()) {
+        io.to(sid).emit("newGroupMessage", { groupId, message: populatedMsg });
+      }
     });
 
     res.json({ success: true, data: populatedMsg });
@@ -113,7 +113,7 @@ export const addMember = async (req, res) => {
     const { groupId, userId } = req.params;
     const group = await Group.findById(groupId);
     if (!group) return res.json({ success: false, message: "Group not found" });
-    if (String(group.admin) !== String(req.user._id)) {
+    if (String(group.admin) !== String(req.user._id) && !group.admins.includes(req.user._id)) {
       return res.json({ success: false, message: "Only admin can add members" });
     }
     if (group.members.includes(userId)) {
@@ -125,7 +125,8 @@ export const addMember = async (req, res) => {
 
     const populated = await Group.findById(group._id)
       .populate("members", "-password")
-      .populate("admin", "-password");
+      .populate("admin", "-password")
+      .populate("admins", "-password");
 
     const newMemberSocket = userSocketMap[userId];
     if (newMemberSocket) io.to(newMemberSocket).emit("groupCreated", populated);
@@ -141,12 +142,16 @@ export const removeMember = async (req, res) => {
     const { groupId, userId } = req.params;
     const group = await Group.findById(groupId);
     if (!group) return res.json({ success: false, message: "Group not found" });
-    if (String(group.admin) !== String(req.user._id)) {
+    if (String(group.admin) !== String(req.user._id) && !group.admins.includes(req.user._id)) {
       return res.json({ success: false, message: "Only admin can remove members" });
     }
 
     group.members = group.members.filter((m) => m.toString() !== userId);
+    group.admins = group.admins.filter((a) => a.toString() !== userId);
     await group.save();
+
+    const removedSocket = userSocketMap[userId];
+    if (removedSocket) io.to(removedSocket).emit("removedFromGroup", { groupId });
 
     res.json({ success: true, data: group });
   } catch (error) {

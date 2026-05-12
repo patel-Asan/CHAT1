@@ -45,6 +45,7 @@ const HomePage = () => {
         alignItems: "center",
         background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
         color: "#e5e7eb",
+        paddingBottom: isMobile ? "env(safe-area-inset-bottom, 0px)" : "0",
       }}
     >
       <div
@@ -52,7 +53,7 @@ const HomePage = () => {
           display: "grid",
           gridTemplateColumns: getGridTemplate(),
           width: "100%",
-          height: "100%",
+          height: isMobile ? "100dvh" : "100%",
           maxWidth: isMobile ? "100%" : "1440px",
           borderRadius: isMobile ? "0" : "1rem",
           overflow: "hidden",
@@ -66,10 +67,11 @@ const HomePage = () => {
         {(!isMobile || !selectedUser) && (
           <div
             style={{
-              overflowY: "auto",
+              overflow: "hidden",
               scrollBehavior: "smooth",
               borderRight: isMobile ? "none" : "2px solid rgba(99,102,241,0.3)",
               background: "rgba(31,41,55,0.6)",
+              height: isMobile ? "100dvh" : "100%",
             }}
           >
             <Side />

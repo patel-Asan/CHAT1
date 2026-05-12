@@ -29,113 +29,115 @@ const Timepass = () => {
 
   // ---------------------- STYLES ----------------------
   const containerStyle = {
-    backgroundColor: "rgba(129,133,178,0.1)",
+    backgroundColor: "rgba(15, 23, 42, 0.95)",
     color: "white",
     width: "100%",
+    height: "100dvh",
     position: "relative",
     overflowY: "auto",
     padding: isMobile ? "1rem" : "2rem",
     fontSize: isMobile ? "0.9rem" : "1rem",
+    backdropFilter: "blur(10px)",
   };
 
   const backBtnStyle = {
     position: "absolute",
-    top: "15px",
-    left: "15px",
-    background: "linear-gradient(135deg, #00c6ff, #0072ff)",
+    top: isMobile ? "12px" : "15px",
+    left: isMobile ? "12px" : "15px",
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
     color: "white",
     padding: isMobile ? "8px 14px" : "10px 18px",
-    borderRadius: "30px",
+    borderRadius: "25px",
     border: "none",
     cursor: "pointer",
     fontSize: isMobile ? "0.85rem" : "0.95rem",
     fontWeight: "600",
     backdropFilter: "blur(6px)",
-    boxShadow: "0 4px 15px rgba(0, 114, 255, 0.4)",
+    boxShadow: "0 4px 15px rgba(102, 126, 234, 0.4)",
     transition: "all 0.3s ease",
     letterSpacing: "0.5px",
     display: "flex",
     alignItems: "center",
     gap: "6px",
+    zIndex: 10,
   };
 
   const profileSection = {
-    paddingTop: isMobile ? "3rem" : "4rem",
+    paddingTop: isMobile ? "4rem" : "5rem",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "0.5rem",
+    gap: isMobile ? "0.75rem" : "1rem",
     fontWeight: "300",
   };
 
   const avatarStyle = {
-    width: isMobile ? "60px" : "80px",
+    width: isMobile ? "80px" : "100px",
     aspectRatio: "1/1",
     borderRadius: "50%",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+    boxShadow: "0 8px 25px rgba(0,0,0,0.4)",
     transition: "transform 0.3s ease",
     cursor: "pointer",
+    border: "3px solid rgba(139, 92, 246, 0.3)",
   };
 
   const nameStyle = {
-    fontSize: isMobile ? "1rem" : "1.25rem",
-    fontWeight: "500",
+    fontSize: isMobile ? "1.25rem" : "1.5rem",
+    fontWeight: "600",
     display: "flex",
     alignItems: "center",
     gap: "0.5rem",
+    color: "#fff",
   };
 
   const statusDot = {
-    width: "8px",
-    height: "8px",
+    width: "10px",
+    height: "10px",
     borderRadius: "50%",
-    backgroundColor: onlineUsers.includes(selectedUser._id) ? "green" : "gray",
+    backgroundColor: onlineUsers.includes(selectedUser._id) ? "#22c55e" : "#9ca3af",
+    boxShadow: onlineUsers.includes(selectedUser._id) ? "0 0 8px rgba(34, 197, 94, 0.5)" : "none",
   };
 
   const bioStyle = {
     textAlign: "center",
-    fontSize: isMobile ? "0.85rem" : "1rem",
+    fontSize: isMobile ? "0.9rem" : "1rem",
+    color: "#9ca3af",
+    maxWidth: isMobile ? "280px" : "400px",
+    lineHeight: "1.5",
   };
 
   const hrStyle = {
-    border: "1px solid rgba(255,255,255,0.3)",
-    margin: "1rem 0",
+    border: "none",
+    height: "1px",
+    background: "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent)",
+    margin: "1.5rem 0",
   };
 
   const mediaContainer = {
-    fontSize: isMobile ? "0.85rem" : "0.75rem",
+    fontSize: isMobile ? "0.9rem" : "1rem",
+    fontWeight: "600",
+    color: "#a78bfa",
   };
 
   const mediaGrid = {
-    marginTop: "0.5rem",
-    maxHeight: isMobile ? "150px" : "200px",
+    marginTop: "1rem",
+    maxHeight: isMobile ? "200px" : "300px",
     overflowY: "auto",
     display: "grid",
-    gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
-    gap: "0.5rem",
+    gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(3, 1fr)",
+    gap: isMobile ? "0.5rem" : "0.75rem",
+    paddingBottom: "2rem",
   };
 
   const imgThumb = {
-    borderRadius: "6px",
+    borderRadius: "12px",
     cursor: "pointer",
     width: "100%",
     height: "auto",
+    aspectRatio: "1/1",
+    objectFit: "cover",
     transition: "transform 0.3s ease",
-  };
-
-  const logoutBtn = {
-    background: "linear-gradient(135deg, #ff4d4d, #ff0000)",
-    color: "white",
-    border: "none",
-    padding: isMobile ? "8px 16px" : "10px 20px",
-    borderRadius: "6px",
-    margin: "20px auto",
-    display: "block",
-    cursor: "pointer",
-    fontWeight: "500",
-    fontSize: isMobile ? "0.9rem" : "1rem",
-    transition: "all 0.3s ease",
-    boxShadow: "0 4px 15px rgba(255,0,0,0.4)",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
   };
 
   // ---------------------- JSX ----------------------
@@ -146,23 +148,12 @@ const Timepass = () => {
         style={backBtnStyle}
         onClick={() => { setSelectedUser(null); setSelectedGroup(null); navigate(-1); }}
         onMouseOver={(e) => {
-          e.currentTarget.style.transform = "scale(1.08)";
-          e.currentTarget.style.boxShadow = "0 6px 20px rgba(0, 114, 255, 0.6)";
-          e.currentTarget.style.background =
-            "linear-gradient(135deg, #33d1ff, #0099ff)";
+          e.currentTarget.style.transform = "scale(1.05)";
+          e.currentTarget.style.boxShadow = "0 6px 20px rgba(102, 126, 234, 0.6)";
         }}
         onMouseOut={(e) => {
           e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow =
-            "0 4px 15px rgba(0, 114, 255, 0.4)";
-          e.currentTarget.style.background =
-            "linear-gradient(135deg, #00c6ff, #0072ff)";
-        }}
-        onMouseDown={(e) => {
-          e.currentTarget.style.transform = "scale(0.95)";
-        }}
-        onMouseUp={(e) => {
-          e.currentTarget.style.transform = "scale(1.08)";
+          e.currentTarget.style.boxShadow = "0 4px 15px rgba(102, 126, 234, 0.4)";
         }}
       >
         ← Back
@@ -207,22 +198,6 @@ const Timepass = () => {
           ))}
         </div>
       </div>
-
-      {/* Logout Button */}
-      <button
-        onClick={() => logout()}
-        style={logoutBtn}
-        onMouseOver={(e) => {
-          e.currentTarget.style.transform = "scale(1.05)";
-          e.currentTarget.style.boxShadow = "0 6px 20px rgba(255,0,0,0.6)";
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = "0 4px 15px rgba(255,0,0,0.4)";
-        }}
-      >
-        Logout
-      </button>
     </div>
   );
 };
