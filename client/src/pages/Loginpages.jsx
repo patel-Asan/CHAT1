@@ -286,7 +286,7 @@ const LoginPage = () => {
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = "none";
-            e.currentTarget.style.boxShadow = styles.form.boxShadow;
+            e.currentTarget.style.boxShadow = styles.formContainer.boxShadow;
           }}
         >
           <div style={styles.header}>
