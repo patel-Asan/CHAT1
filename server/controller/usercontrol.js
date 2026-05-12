@@ -9,14 +9,14 @@ export const signup = async (req, res) => {
 
   try {
     // 1. Check for missing details
-    if (!fullName || !email || !password || !bio) {
+    if (!fullName || !email || !password) {
       return res.json({ success: false, message: "Missing details" });
     }
 
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
 
     // 2. Check if the user already exists
-   
     if (user) {
       return res.json({ success: false, message: "Account already exists" });
     }
@@ -28,19 +28,20 @@ export const signup = async (req, res) => {
     // 4. Create the new user
     const newUser = await User.create({
       fullName,
-      email,
+      email: normalizedEmail,
       password: hashedPass,
-      bio,
+      bio: bio || "",
     });
 
-    // 5. Generate a token
+    // 5. Generate a token (exclude password from response)
     const token = generateToken(newUser._id);
+    const userData = await User.findById(newUser._id).select("-password");
 
-     res.json({
+    res.json({
       success: true,
       message: "User created successfully",
       token,
-      userData: newUser
+      userData
     });
 
   } catch (error) {
@@ -56,7 +57,8 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const userData = await User.findOne({ email })
+        const normalizedEmail = email.toLowerCase().trim();
+        const userData = await User.findOne({ email: normalizedEmail })
 
         if (!userData) {
             return res.json({
@@ -74,12 +76,13 @@ export const login = async (req, res) => {
             });
         }
         const token = generateToken(userData._id)
+        const user = await User.findById(userData._id).select("-password");
 
         return res.json({
             success: true,
             message: "User logged in successfully",
             token,
-            userData
+            userData: user
         });
     } catch (error) {
         return res.json({
