@@ -167,8 +167,12 @@ io.on("connection", (socket) => {
   });
 });
 
+app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "10mb" }));
-app.use(cors());
+app.use((req, _res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
 
 app.use("/api/status", (req, res) => res.send("Server is live"));
 app.use("/api/auth", userRouter);
