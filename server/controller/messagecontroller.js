@@ -72,7 +72,7 @@ export const markMessagesAsSeen = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image, file } = req.body;
+    const { text, image, file, replyTo, voice } = req.body;
     const senderId = req.user._id;
     const receiverId = req.params.id;
 
@@ -89,7 +89,6 @@ export const sendMessage = async (req, res) => {
       fileData = { url: uploadResponse.secure_url, name: file.name, type: file.type };
     }
 
-    // Link preview detection
     let linkPreview = {};
     const urlMatch = text?.match(/(https?:\/\/[^\s]+)/);
     if (urlMatch) {
@@ -97,7 +96,7 @@ export const sendMessage = async (req, res) => {
     }
 
     const newMessage = await Message.create({
-      senderId, receiverId, text, image: imageUrl, file: fileData, linkPreview,
+      senderId, receiverId, text, image: imageUrl, file: fileData, linkPreview, replyTo, voice,
     });
 
     const populated = await Message.findById(newMessage._id).populate("senderId", "fullName profilePic");

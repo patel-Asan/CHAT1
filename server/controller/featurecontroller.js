@@ -29,9 +29,6 @@ export const toggleReaction = async (req, res) => {
 
     await message.save();
 
-    const targetId = message.receiverId || message.groupId;
-    const socketTarget = userSocketMap[targetId];
-    if (socketTarget) io.to(socketTarget).emit("reactionUpdated", { messageId: id, reactions: message.reactions });
     if (message.groupId) {
       const group = await Group.findById(message.groupId);
       if (group) {
@@ -40,6 +37,11 @@ export const toggleReaction = async (req, res) => {
           if (sid) io.to(sid).emit("reactionUpdated", { messageId: id, reactions: message.reactions });
         });
       }
+    } else {
+      [message.senderId, message.receiverId].forEach((uid) => {
+        const sid = userSocketMap[uid?.toString?.() || uid];
+        if (sid) io.to(sid).emit("reactionUpdated", { messageId: id, reactions: message.reactions });
+      });
     }
 
     res.json({ success: true, data: message.reactions });

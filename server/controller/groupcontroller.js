@@ -62,7 +62,7 @@ export const getGroupMessages = async (req, res) => {
 export const sendGroupMessage = async (req, res) => {
   try {
     const { groupId } = req.params;
-    const { text, image, file } = req.body;
+    const { text, image, file, replyTo } = req.body;
     const senderId = req.user._id;
 
     const group = await Group.findById(groupId);
@@ -90,7 +90,7 @@ export const sendGroupMessage = async (req, res) => {
     if (urlMatch) linkPreview = { url: urlMatch[0] };
 
     const newMessage = await Message.create({
-      senderId, groupId, text, image: imageUrl, file: fileData, linkPreview,
+      senderId, groupId, text, image: imageUrl, file: fileData, linkPreview, replyTo,
     });
 
     const populatedMsg = await Message.findById(newMessage._id).populate("senderId", "-password");
