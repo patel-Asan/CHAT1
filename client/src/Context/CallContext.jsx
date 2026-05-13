@@ -21,19 +21,26 @@ export const CallProvider = ({ children }) => {
   const [isVideo, setIsVideo] = useState(true);
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
-  const [callDirection, setCallDirection] = useState(null); // "outgoing" | "incoming"
+  const [callDirection, setCallDirection] = useState(null);
 
   const pcRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const callIdRef = useRef(null);
   const callStartRef = useRef(null);
+  const pendingOfferRef = useRef(null);
+  const callStateRef = useRef(CALL_STATES.IDLE);
 
   const config = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun3.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:19302" },
+    ],
   };
 
-  // Cleanup streams
   const cleanupStreams = () => {
     if (localStream) {
       localStream.getTracks().forEach((t) => t.stop());
@@ -54,10 +61,12 @@ export const CallProvider = ({ children }) => {
   const resetCall = () => {
     cleanupStreams();
     setCallState(CALL_STATES.IDLE);
+    callStateRef.current = CALL_STATES.IDLE;
     setRemoteUser(null);
     setCallDirection(null);
     callIdRef.current = null;
     callStartRef.current = null;
+    pendingOfferRef.current = null;
   };
 
   // Start a call
@@ -113,6 +122,7 @@ export const CallProvider = ({ children }) => {
   const acceptCall = async () => {
     if (!socket || !remoteUser) return;
     setCallState(CALL_STATES.CONNECTED);
+    callStateRef.current = CALL_STATES.CONNECTED;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -136,8 +146,15 @@ export const CallProvider = ({ children }) => {
         setRemoteStream(e.streams[0]);
       };
 
-      // We need the offer that was sent - it's stored from the socket event
-      // The actual offer handling happens in subscribeToCallEvents
+      // Process pending offer if it arrived before we accepted
+      if (pendingOfferRef.current) {
+        await pc.setRemoteDescription(new RTCSessionDescription(pendingOfferRef.current));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        socket.emit("webrtc:answer", { to: remoteUser._id, answer });
+        pendingOfferRef.current = null;
+      }
+
       socket.emit("call:accept", { to: remoteUser._id, room: authUser._id });
     } catch (err) {
       alert("Could not access camera/microphone");
@@ -195,11 +212,13 @@ export const CallProvider = ({ children }) => {
       setRemoteUser({ _id: from });
       setCallDirection("incoming");
       setCallState(CALL_STATES.RINGING);
+      callStateRef.current = CALL_STATES.RINGING;
     };
 
     const handleCallAccepted = ({ from }) => {
       callStartRef.current = Date.now();
       setCallState(CALL_STATES.CONNECTED);
+      callStateRef.current = CALL_STATES.CONNECTED;
     };
 
     const handleCallRejected = () => {
@@ -209,6 +228,7 @@ export const CallProvider = ({ children }) => {
 
     const handleCallEnded = () => {
       setCallState(CALL_STATES.ENDED);
+      callStateRef.current = CALL_STATES.ENDED;
       setTimeout(resetCall, 1000);
     };
 
@@ -222,11 +242,13 @@ export const CallProvider = ({ children }) => {
     };
 
     const handleOffer = async ({ from, offer }) => {
-      if (pcRef.current && callState === CALL_STATES.CONNECTED) {
+      if (pcRef.current && callStateRef.current === CALL_STATES.CONNECTED) {
         await pcRef.current.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await pcRef.current.createAnswer();
         await pcRef.current.setLocalDescription(answer);
         socket.emit("webrtc:answer", { to: from, answer });
+      } else {
+        pendingOfferRef.current = offer;
       }
     };
 
@@ -247,8 +269,9 @@ export const CallProvider = ({ children }) => {
     };
 
     const handlePeerGone = () => {
-      if (callState === CALL_STATES.CONNECTED) {
+      if (callStateRef.current === CALL_STATES.CONNECTED) {
         setCallState(CALL_STATES.ENDED);
+        callStateRef.current = CALL_STATES.ENDED;
         setTimeout(resetCall, 1000);
       }
     };
@@ -276,7 +299,7 @@ export const CallProvider = ({ children }) => {
       socket.off("webrtc:ice", handleIce);
       socket.off("peer:gone", handlePeerGone);
     };
-  }, [socket, callState]);
+  }, [socket]);
 
   // Map remoteUser _id to actual user data
   useEffect(() => {

@@ -109,11 +109,19 @@ const VideoCallModal = () => {
           borderRadius: "16px", overflow: "hidden",
           background: "#0f172a",
         }}>
-          {/* Remote video / audio avatar */}
-          {isVideo ? (
-            <video ref={remoteRef} autoPlay playsInline
-              style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          ) : (
+          {/* Remote video/audio — always rendered so audio plays even in audio-only calls */}
+          <video ref={remoteRef} autoPlay playsInline
+            style={{
+              width: isVideo ? "100%" : "0",
+              height: isVideo ? "100%" : "0",
+              objectFit: "cover",
+              position: isVideo ? "static" : "absolute",
+              opacity: isVideo ? 1 : 0,
+              pointerEvents: isVideo ? "auto" : "none",
+            }} />
+
+          {/* Audio-only avatar */}
+          {!isVideo && (
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center",
               justifyContent: "center", height: "300px",
@@ -125,16 +133,18 @@ const VideoCallModal = () => {
             </div>
           )}
 
-          {/* Local video (PIP) */}
-          {isVideo && (
-            <video ref={localRef} autoPlay playsInline muted
-              style={{
-                position: "absolute", bottom: "80px", right: "16px",
-                width: "120px", height: "160px", borderRadius: "12px",
-                objectFit: "cover", border: "2px solid rgba(255,255,255,0.2)",
-                background: "#1e293b", transform: "scaleX(-1)",
-              }} />
-          )}
+          {/* Local video (PIP) — always rendered for audio too */}
+          <video ref={localRef} autoPlay playsInline muted
+            style={{
+              position: "absolute", bottom: "80px", right: "16px",
+              width: isVideo ? "120px" : "0",
+              height: isVideo ? "160px" : "0",
+              borderRadius: "12px",
+              objectFit: "cover", border: isVideo ? "2px solid rgba(255,255,255,0.2)" : "none",
+              background: "#1e293b", transform: "scaleX(-1)",
+              opacity: isVideo ? 1 : 0,
+              pointerEvents: isVideo ? "auto" : "none",
+            }} />
 
           {/* Controls */}
           <div style={{
