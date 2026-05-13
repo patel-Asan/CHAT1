@@ -116,7 +116,9 @@ export const updateProfile = async (req, res) => {
                 fullName
             }, { new: true });  
         } else {
-            const upload = await cloudinary.uploader.upload(profilePic);
+            const upload = await cloudinary.uploader.upload(profilePic, {
+              quality: "auto", fetch_format: "auto", width: 400, height: 400, crop: "limit",
+            });
 
             updateuser = await User.findByIdAndUpdate(userId, {
                 profilePic: upload.secure_url,

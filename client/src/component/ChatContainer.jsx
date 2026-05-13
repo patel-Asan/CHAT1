@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import assets from "../assest/assets";
-import { formatMessageTime, getReactionCount, isMuted, extractUrls } from "../lib/util";
+import { formatMessageTime, getReactionCount, isMuted, extractUrls, compressImage, debounce } from "../lib/util";
 import { AuthContext } from "../Context/AuthContext";
 import { ChatContext } from "../Context/ChatContext";
 import { getTheme, themes } from "../lib/themes";
@@ -36,7 +36,7 @@ const LinkPreviewCard = ({ preview }) => {
       }}
     >
       {preview.image && (
-        <img src={preview.image} alt="" style={{ width: "100%", height: "120px", objectFit: "cover" }} />
+        <img src={preview.image} alt="" loading="lazy" style={{ width: "100%", height: "120px", objectFit: "cover" }} />
       )}
       <div style={{ padding: "6px 10px", background: "rgba(0,0,0,0.3)" }}>
         <p style={{ margin: 0, fontSize: "12px", fontWeight: "600", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -205,7 +205,7 @@ const ForwardModal = ({ message, onClose }) => {
               marginBottom: "4px",
             }}
           >
-            <img src={t.profilePic || assets.avatar_icon} alt=""
+            <img src={t.profilePic || assets.avatar_icon} alt="" loading="lazy"
               style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
             <span style={{ color: "#e5e7eb", fontSize: "14px" }}>{t.fullName || t.name}</span>
           </div>
@@ -269,7 +269,7 @@ const SearchOverlay = ({ onClose }) => {
             background: "rgba(255,255,255,0.04)", cursor: "pointer",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-              <img src={msg.senderId?.profilePic || assets.avatar_icon} alt=""
+              <img src={msg.senderId?.profilePic || assets.avatar_icon} alt="" loading="lazy"
                 style={{ width: "20px", height: "20px", borderRadius: "50%" }} />
               <span style={{ color: "#a78bfa", fontSize: "12px", fontWeight: "600" }}>{msg.senderId?.fullName}</span>
               <span style={{ color: "#6B7280", fontSize: "11px" }}>{formatMessageTime(msg.createdAt)}</span>
@@ -434,12 +434,17 @@ const ChatContainer = () => {
     }
   }, [socket, selectedUser, selectedGroup]);
 
+  const debouncedEmitTyping = useCallback(
+    debounce(() => emitTyping(true), 300),
+    [emitTyping]
+  );
+
   const handleInputChange = (e) => {
     setInput(e.target.value);
     if (!socket) return;
-    emitTyping(true);
     clearTimeout(typingTimeoutRef.current);
-    typingTimeoutRef.current = setTimeout(() => emitTyping(false), 1500);
+    debouncedEmitTyping();
+    typingTimeoutRef.current = setTimeout(() => emitTyping(false), 2000);
   };
 
   const handleEmojiClick = (emojiObject) => {
@@ -478,22 +483,18 @@ const ChatContainer = () => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const fn = selectedGroup ? sendGroupMessage : sendMessage;
-        await fn({ image: reader.result });
-        e.target.value = "";
-      };
-      reader.readAsDataURL(file);
+      const compressed = await compressImage(file);
+      const fn = selectedGroup ? sendGroupMessage : sendMessage;
+      await fn({ image: compressed });
     } else {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const fn = selectedGroup ? sendGroupMessage : sendMessage;
         await fn({ file: { data: reader.result, name: file.name, type: file.type } });
-        e.target.value = "";
       };
       reader.readAsDataURL(file);
     }
+    e.target.value = "";
   };
 
   const handleDeleteMessage = async (messageId) => {
@@ -1026,7 +1027,7 @@ const ChatContainer = () => {
                     {msg.forwarded && (
                       <p style={{ margin: "0 0 4px 2px", fontSize: "11px", color: "#a78bfa", fontStyle: "italic" }}>⤴ Forwarded from {msg.forwardedFrom || "unknown"}</p>
                     )}
-                    <img src={msg.image} alt="" style={{
+                    <img src={msg.image} alt="" loading="lazy" style={{
                       width: "100%", border: "1px solid #374151", borderRadius: "12px",
                     }} />
                     {msg.text && <p style={{ color: "#d1d5db", fontSize: "13px", margin: "6px 0 0 4px", wordBreak: "break-word" }}>{msg.text}</p>}
@@ -1207,13 +1208,13 @@ const ChatContainer = () => {
 
               {/* Avatar + Timestamp + Actions */}
               <div style={{ textAlign: "center", fontSize: "11px", marginBottom: "24px", position: "relative" }}>
-                <img src={
+                  <img src={
                   isOwn ? authUser?.profilePic || assets.avatar_icon
                     : selectedUser?.profilePic || assets.avatar_icon
-                } alt="" style={{
-                  width: "26px", height: "26px", borderRadius: "50%",
-                  objectFit: "cover", border: "1px solid rgba(255,255,255,0.1)",
-                }} />
+                  } alt="" loading="lazy" style={{
+                    width: "26px", height: "26px", borderRadius: "50%",
+                    objectFit: "cover", border: "1px solid rgba(255,255,255,0.1)",
+                  }} />
                 <p style={{ color: "#6b7280", margin: "2px 0 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", flexDirection: "column" }}>
                   <span>{formatMessageTime(msg.createdAt)}</span>
                   {isOwn && msg?.seen && (

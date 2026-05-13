@@ -3,6 +3,18 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['react-icons', 'react-hot-toast'],
+          socket: ['socket.io-client'],
+          emoji: ['emoji-picker-react'],
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({

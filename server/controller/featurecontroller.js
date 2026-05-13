@@ -462,7 +462,9 @@ export const updateGroup = async (req, res) => {
 
     let picUrl = group.profilePic;
     if (profilePic) {
-      const upload = await cloudinary.uploader.upload(profilePic);
+      const upload = await cloudinary.uploader.upload(profilePic, {
+        quality: "auto", fetch_format: "auto", width: 400, height: 400, crop: "limit",
+      });
       picUrl = upload.secure_url;
     }
 

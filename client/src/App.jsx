@@ -1,35 +1,44 @@
-import React, { useContext } from "react";
+import React, { Suspense, lazy, useContext } from "react";
 import "./index.css";
 import { Navigate, Route, Routes } from "react-router-dom";
-import HomePage from "./pages/Homepage";
-import ProfilePage from "./pages/Profilepage";
-import LoginPage from "./pages/Loginpages";
 import { Toaster } from "react-hot-toast";
-
 import { AuthContext } from "../src/Context/AuthContext";
-// background image (served from /public at root path)
+
+const HomePage = lazy(() => import("./pages/Homepage"));
+const ProfilePage = lazy(() => import("./pages/Profilepage"));
+const LoginPage = lazy(() => import("./pages/Loginpages"));
+
 const bgImage = "/bgImage.svg";
 
+const Loading = () => (
+  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", color: "#94a3b8", fontSize: "14px" }}>
+    Loading...
+  </div>
+);
+
 function App() {
-  const { authUser} = useContext(AuthContext);
+  const { authUser } = useContext(AuthContext);
   return (
     <div
       style={{
         backgroundImage: `url(${bgImage})`,
-        backgroundSize: "cover", // ensures it fills the screen
+        backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        minHeight: "100vh", // full height for all devices
+        minHeight: "100vh",
         width: "100%",
         display: "flex",
         flexDirection: "column",
       }}
-    > < Toaster/>
-      <Routes>
-        <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" /> } />
-        <Route path="/login" element={!authUser ?  <LoginPage /> : <Navigate to="/" /> } />
-        <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
-      </Routes>
+    >
+      <Toaster />
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
+          <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
+          <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
+        </Routes>
+      </Suspense>
     </div>
   );
 }

@@ -80,7 +80,9 @@ export const sendMessage = async (req, res) => {
     let fileData = {};
 
     if (image) {
-      const uploadResponse = await cloudinary.uploader.upload(image);
+      const uploadResponse = await cloudinary.uploader.upload(image, {
+        quality: "auto", fetch_format: "auto", width: 1200, crop: "limit",
+      });
       imageUrl = uploadResponse.secure_url;
     }
 
