@@ -61,14 +61,16 @@ const ReactionBadge = ({ reactions, onReact, currentUserId }) => {
   return (
     <div
       style={{
-        display: "flex",
-        gap: "2px",
-        background: "rgba(30,41,59,0.9)",
-        borderRadius: "12px",
-        padding: "2px 6px",
-        marginTop: "2px",
-        alignSelf: "flex-start",
-        border: "1px solid rgba(255,255,255,0.05)",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "3px",
+        background: "rgba(15,23,42,0.85)",
+        backdropFilter: "blur(8px)",
+        borderRadius: "14px",
+        padding: "2px 8px 2px 6px",
+        marginTop: "4px",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
       }}
     >
       {emojis.map((emoji) => (
@@ -76,20 +78,34 @@ const ReactionBadge = ({ reactions, onReact, currentUserId }) => {
           key={emoji}
           onClick={(e) => { e.stopPropagation(); onReact(emoji); }}
           style={{
-            fontSize: "13px",
+            fontSize: "14px",
             cursor: "pointer",
-            padding: "0 2px",
-            opacity: reactions.some((r) => r.emoji === emoji && String(r.userId) === String(currentUserId)) ? 1 : 0.6,
+            padding: "2px 3px",
+            borderRadius: "8px",
+            transition: "all 0.15s ease",
+            background: reactions.some((r) => r.emoji === emoji && String(r.userId) === String(currentUserId))
+              ? "rgba(99,102,241,0.2)" : "transparent",
+            opacity: reactions.some((r) => r.emoji === emoji && String(r.userId) === String(currentUserId)) ? 1 : 0.65,
+            lineHeight: 1,
+            filter: reactions.some((r) => r.emoji === emoji && String(r.userId) === String(currentUserId))
+              ? "none" : "grayscale(0.3)",
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.2)"; e.currentTarget.style.background = "rgba(99,102,241,0.25)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.background = reactions.some((r) => r.emoji === emoji && String(r.userId) === String(currentUserId)) ? "rgba(99,102,241,0.2)" : "transparent"; }}
         >
-          {emoji}{counts[emoji] > 1 ? counts[emoji] : ""}
+          {emoji}{counts[emoji] > 1 ? <span style={{ fontSize: "11px", fontWeight: "600", marginLeft: "1px", color: "#c7d2fe" }}>{counts[emoji]}</span> : ""}
         </span>
       ))}
       <span
         onClick={(e) => { e.stopPropagation(); }}
-        style={{ fontSize: "11px", cursor: "pointer", paddingLeft: "2px" }}
+        style={{
+          fontSize: "10px", cursor: "pointer", padding: "2px 4px", lineHeight: 1,
+          borderRadius: "6px", color: "#94a3b8", transition: "all 0.15s ease",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#e2e8f0"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94a3b8"; }}
       >
-        <FaPlus size={8} />
+        <FaPlus size={9} />
       </span>
     </div>
   );
@@ -858,21 +874,37 @@ const ChatContainer = () => {
       {/* Reply preview */}
       {replyingTo && (
         <div style={{
-          display: "flex", alignItems: "center", gap: "8px", padding: "6px 12px",
-          background: "rgba(139,92,246,0.15)", borderLeft: "3px solid #7c3aed",
-          flexShrink: 0,
+          display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px",
+          background: "linear-gradient(135deg, rgba(124,58,237,0.18) 0%, rgba(99,102,241,0.1) 100%)",
+          borderLeft: "3px solid #7c3aed",
+          borderTop: "1px solid rgba(124,58,237,0.12)",
+          borderBottom: "1px solid rgba(124,58,237,0.08)",
+          flexShrink: 0, position: "relative",
         }}>
-          <FaReply size={12} color="#a78bfa" style={{ flexShrink: 0 }} />
+          <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "rgba(124,58,237,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <FaReply size={11} color="#a78bfa" />
+          </div>
           <div style={{ flex: 1, overflow: "hidden" }}>
-            <p style={{ margin: 0, fontSize: "11px", color: "#a78bfa", fontWeight: "600" }}>
-              Replying to {replyingTo.senderId?.fullName || "unknown"}
+            <p style={{ margin: 0, fontSize: "11px", color: "#a78bfa", fontWeight: "600", letterSpacing: "0.02em" }}>
+              Reply to {replyingTo.senderId?.fullName || "unknown"}
             </p>
-            <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#9CA3AF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {replyingTo.text || (replyingTo.image ? "📷 Image" : replyingTo.voice ? "🎤 Voice" : "📎 File")}
             </p>
           </div>
-          <FaTimes size={12} color="#9CA3AF" style={{ cursor: "pointer", flexShrink: 0 }}
-            onClick={() => setReplyingTo(null)} />
+          <button
+            onClick={() => setReplyingTo(null)}
+            style={{
+              width: "24px", height: "24px", borderRadius: "50%", border: "none",
+              background: "rgba(255,255,255,0.08)", color: "#94a3b8", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "10px", flexShrink: 0, transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#e2e8f0"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#94a3b8"; }}
+          >
+            <FaTimes size={10} />
+          </button>
         </div>
       )}
 
@@ -971,17 +1003,96 @@ const ChatContainer = () => {
                 {/* Image */}
                 {msg?.image ? (
                   <div>
+                    {msg.replyTo?.messageId && (
+                      <div style={{
+                        padding: "6px 10px", marginBottom: "6px", borderRadius: "10px",
+                        background: "linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(99,102,241,0.08) 100%)",
+                        borderLeft: "3px solid #7c3aed",
+                        borderTop: "1px solid rgba(124,58,237,0.15)",
+                        borderRight: "1px solid rgba(124,58,237,0.08)",
+                        borderBottom: "1px solid rgba(124,58,237,0.08)",
+                        position: "relative", overflow: "hidden",
+                      }}>
+                        <div style={{ position: "absolute", top: 0, right: 0, width: "40px", height: "100%", background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.06))", pointerEvents: "none" }} />
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <FaReply size={9} color="#a78bfa" style={{ flexShrink: 0 }} />
+                          <p style={{ margin: 0, fontSize: "11px", color: "#a78bfa", fontWeight: "600", letterSpacing: "0.02em" }}>{msg.replyTo.senderName}</p>
+                        </div>
+                        <p style={{ margin: "3px 0 0", fontSize: "11px", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingLeft: "15px" }}>
+                          {msg.replyTo.text || (msg.replyTo.image ? "📷 Image" : "📎 Media")}
+                        </p>
+                      </div>
+                    )}
+                    {msg.forwarded && (
+                      <p style={{ margin: "0 0 4px 2px", fontSize: "11px", color: "#a78bfa", fontStyle: "italic" }}>⤴ Forwarded from {msg.forwardedFrom || "unknown"}</p>
+                    )}
                     <img src={msg.image} alt="" style={{
                       width: "100%", border: "1px solid #374151", borderRadius: "12px",
                     }} />
                     {msg.text && <p style={{ color: "#d1d5db", fontSize: "13px", margin: "6px 0 0 4px", wordBreak: "break-word" }}>{msg.text}</p>}
+                    {msg.reactions?.length > 0 && (
+                      <ReactionBadge
+                        reactions={msg.reactions}
+                        currentUserId={authUser?._id}
+                        onReact={(emoji) => handleReact(msg._id, emoji)}
+                      />
+                    )}
                   </div>
                 ) : msg?.voice ? (
-                  <div style={{ padding: "8px 12px", background: "rgba(255,255,255,0.08)", borderRadius: "12px", minWidth: "200px" }}>
-                    <audio controls src={msg.voice} style={{ width: "100%", height: "36px" }} />
+                  <div>
+                    {msg.replyTo?.messageId && (
+                      <div style={{
+                        padding: "6px 10px", marginBottom: "6px", borderRadius: "10px",
+                        background: "linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(99,102,241,0.08) 100%)",
+                        borderLeft: "3px solid #7c3aed",
+                        borderTop: "1px solid rgba(124,58,237,0.15)",
+                        borderRight: "1px solid rgba(124,58,237,0.08)",
+                        borderBottom: "1px solid rgba(124,58,237,0.08)",
+                        position: "relative", overflow: "hidden",
+                      }}>
+                        <div style={{ position: "absolute", top: 0, right: 0, width: "40px", height: "100%", background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.06))", pointerEvents: "none" }} />
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <FaReply size={9} color="#a78bfa" style={{ flexShrink: 0 }} />
+                          <p style={{ margin: 0, fontSize: "11px", color: "#a78bfa", fontWeight: "600", letterSpacing: "0.02em" }}>{msg.replyTo.senderName}</p>
+                        </div>
+                        <p style={{ margin: "3px 0 0", fontSize: "11px", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingLeft: "15px" }}>
+                          {msg.replyTo.text || (msg.replyTo.voice ? "🎤 Voice" : "📎 Media")}
+                        </p>
+                      </div>
+                    )}
+                    <div style={{ padding: "8px 12px", background: "rgba(255,255,255,0.08)", borderRadius: "12px", minWidth: "200px" }}>
+                      <audio controls src={msg.voice} style={{ width: "100%", height: "36px" }} />
+                    </div>
+                    {msg.reactions?.length > 0 && (
+                      <ReactionBadge
+                        reactions={msg.reactions}
+                        currentUserId={authUser?._id}
+                        onReact={(emoji) => handleReact(msg._id, emoji)}
+                      />
+                    )}
                   </div>
                 ) : msg?.file?.url ? (
                   <div>
+                    {msg.replyTo?.messageId && (
+                      <div style={{
+                        padding: "6px 10px", marginBottom: "6px", borderRadius: "10px",
+                        background: "linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(99,102,241,0.08) 100%)",
+                        borderLeft: "3px solid #7c3aed",
+                        borderTop: "1px solid rgba(124,58,237,0.15)",
+                        borderRight: "1px solid rgba(124,58,237,0.08)",
+                        borderBottom: "1px solid rgba(124,58,237,0.08)",
+                        position: "relative", overflow: "hidden",
+                      }}>
+                        <div style={{ position: "absolute", top: 0, right: 0, width: "40px", height: "100%", background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.06))", pointerEvents: "none" }} />
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <FaReply size={9} color="#a78bfa" style={{ flexShrink: 0 }} />
+                          <p style={{ margin: 0, fontSize: "11px", color: "#a78bfa", fontWeight: "600", letterSpacing: "0.02em" }}>{msg.replyTo.senderName}</p>
+                        </div>
+                        <p style={{ margin: "3px 0 0", fontSize: "11px", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingLeft: "15px" }}>
+                          {msg.replyTo.text || "📎 File"}
+                        </p>
+                      </div>
+                    )}
                     {selectedGroup && !isOwn && senderName && (
                       <p style={{ color: "#a78bfa", fontSize: "11px", fontWeight: "600", margin: "0 0 2px 4px" }}>{senderName}</p>
                     )}
@@ -999,6 +1110,13 @@ const ChatContainer = () => {
                         <p style={{ fontSize: "11px", color: "#9CA3AF", margin: "2px 0 0 0" }}>Click to download</p>
                       </div>
                     </a>
+                    {msg.reactions?.length > 0 && (
+                      <ReactionBadge
+                        reactions={msg.reactions}
+                        currentUserId={authUser?._id}
+                        onReact={(emoji) => handleReact(msg._id, emoji)}
+                      />
+                    )}
                   </div>
                 ) : editingMessageId === msg._id ? (
                   <div style={{ width: "100%" }}>
@@ -1024,14 +1142,24 @@ const ChatContainer = () => {
                     {/* Reply indicator */}
                     {msg.replyTo?.messageId && (
                       <div style={{
-                        padding: "6px 10px", marginBottom: "4px", borderRadius: "8px",
-                        background: "rgba(0,0,0,0.2)", borderLeft: "3px solid #7c3aed",
+                        padding: "6px 10px", marginBottom: "6px", borderRadius: "10px",
+                        background: "linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(99,102,241,0.08) 100%)",
+                        borderLeft: "3px solid #7c3aed",
+                        borderTop: "1px solid rgba(124,58,237,0.15)",
+                        borderRight: "1px solid rgba(124,58,237,0.08)",
+                        borderBottom: "1px solid rgba(124,58,237,0.08)",
+                        position: "relative",
+                        overflow: "hidden",
                       }}>
-                        <p style={{ margin: 0, fontSize: "11px", color: "#a78bfa", fontWeight: "600" }}>
-                          {msg.replyTo.senderName}
-                        </p>
-                        <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#9CA3AF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {msg.replyTo.text || "📎 Media"}
+                        <div style={{ position: "absolute", top: 0, right: 0, width: "40px", height: "100%", background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.06))", pointerEvents: "none" }} />
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <FaReply size={9} color="#a78bfa" style={{ flexShrink: 0 }} />
+                          <p style={{ margin: 0, fontSize: "11px", color: "#a78bfa", fontWeight: "600", letterSpacing: "0.02em" }}>
+                            {msg.replyTo.senderName}
+                          </p>
+                        </div>
+                        <p style={{ margin: "3px 0 0", fontSize: "11px", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingLeft: "15px" }}>
+                          {msg.replyTo.text || (msg.replyTo.image ? "📷 Image" : msg.replyTo.voice ? "🎤 Voice" : "📎 File")}
                         </p>
                       </div>
                     )}
