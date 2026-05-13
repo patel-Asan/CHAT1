@@ -11,21 +11,28 @@ const LoginPage = () => {
   const [bio, setBio] = useState("");
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
- 
+  const [fieldErrors, setFieldErrors] = useState({});
+
   const { login } = useContext(AuthContext);
 
-  
-  const handleSubmit = (e) => {
+  const clearFieldError = (field) => {
+    setFieldErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (currState === "Sign up" && !isDataSubmitted) {
       setIsDataSubmitted(true);
       return;
     }
-      login(currState === "Sign up" ? "signup" : "login", {
-        fullName,
-        email,
-        password,
-        bio });
+    const res = await login(currState === "Sign up" ? "signup" : "login", {
+      fullName, email, password, bio,
+    });
+    if (res && !res.success && res.field) {
+      setFieldErrors((prev) => ({ ...prev, [res.field]: res.message }));
+    } else if (res && res.success) {
+      setFieldErrors({});
+    }
   }
  
   const styles = {
@@ -219,6 +226,10 @@ const LoginPage = () => {
     },
     eyeButtonHover: {
       color: "#667eea"
+    },
+    errorText: {
+      color: "#ef4444", fontSize: "12px", marginTop: "4px", marginLeft: "4px",
+      display: "flex", alignItems: "center", gap: "4px",
     }
   };
 
@@ -318,20 +329,21 @@ const LoginPage = () => {
                 type="text"
                 placeholder="Full Name"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                style={styles.input}
+                onChange={(e) => { setFullName(e.target.value); clearFieldError("fullName"); }}
+                style={{ ...styles.input, borderColor: fieldErrors.fullName ? "#ef4444" : styles.input.border }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = styles.inputFocus.borderColor;
                   e.currentTarget.style.backgroundColor = styles.inputFocus.backgroundColor;
                   e.currentTarget.style.boxShadow = styles.inputFocus.boxShadow;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = styles.input.border;
+                  if (!fieldErrors.fullName) e.currentTarget.style.borderColor = styles.input.border;
                   e.currentTarget.style.backgroundColor = styles.input.backgroundColor;
                   e.currentTarget.style.boxShadow = "none";
                 }}
                 required
               />
+              {fieldErrors.fullName && <span style={styles.errorText}><span style={{ fontSize:"14px" }}>⚠</span> {fieldErrors.fullName}</span>}
             </div>
           )}
 
@@ -343,20 +355,21 @@ const LoginPage = () => {
                   type="email"
                   placeholder="Email Address"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={styles.input}
+                  onChange={(e) => { setEmail(e.target.value); clearFieldError("email"); }}
+                  style={{ ...styles.input, borderColor: fieldErrors.email ? "#ef4444" : styles.input.border }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = styles.inputFocus.borderColor;
                     e.currentTarget.style.backgroundColor = styles.inputFocus.backgroundColor;
                     e.currentTarget.style.boxShadow = styles.inputFocus.boxShadow;
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = styles.input.border;
+                    if (!fieldErrors.email) e.currentTarget.style.borderColor = styles.input.border;
                     e.currentTarget.style.backgroundColor = styles.input.backgroundColor;
                     e.currentTarget.style.boxShadow = "none";
                   }}
                   required
                 />
+                {fieldErrors.email && <span style={styles.errorText}><span style={{ fontSize:"14px" }}>⚠</span> {fieldErrors.email}</span>}
               </div>
               
               <div style={styles.inputGroup}>
@@ -365,15 +378,15 @@ const LoginPage = () => {
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={styles.input}
+                  onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); }}
+                  style={{ ...styles.input, borderColor: fieldErrors.password ? "#ef4444" : styles.input.border }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = styles.inputFocus.borderColor;
                     e.currentTarget.style.backgroundColor = styles.inputFocus.backgroundColor;
                     e.currentTarget.style.boxShadow = styles.inputFocus.boxShadow;
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = styles.input.border;
+                    if (!fieldErrors.password) e.currentTarget.style.borderColor = styles.input.border;
                     e.currentTarget.style.backgroundColor = styles.input.backgroundColor;
                     e.currentTarget.style.boxShadow = "none";
                   }}
@@ -387,6 +400,7 @@ const LoginPage = () => {
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
+                {fieldErrors.password && <span style={styles.errorText}><span style={{ fontSize:"14px" }}>⚠</span> {fieldErrors.password}</span>}
               </div>
             </>
           )}

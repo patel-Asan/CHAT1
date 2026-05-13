@@ -8,17 +8,18 @@ export const signup = async (req, res) => {
   const { fullName, email, password, bio } = req.body;
 
   try {
-    // 1. Check for missing details
     if (!fullName || !email || !password) {
-      return res.json({ success: false, message: "Missing details" });
+      return res.json({
+        success: false, message: "Please fill in all fields",
+        field: !fullName ? "fullName" : !email ? "email" : "password",
+      });
     }
 
     const normalizedEmail = email.toLowerCase().trim();
     const user = await User.findOne({ email: normalizedEmail });
 
-    // 2. Check if the user already exists
     if (user) {
-      return res.json({ success: false, message: "Account already exists" });
+      return res.json({ success: false, message: "An account with this email already exists", field: "email" });
     }
 
     // 3. Hash the password
@@ -62,8 +63,7 @@ export const login = async (req, res) => {
 
         if (!userData) {
             return res.json({
-                success: false,
-                message: "No account found with this email"
+                success: false, message: "No account found with this email", field: "email",
             });
         }
 
@@ -71,8 +71,7 @@ export const login = async (req, res) => {
 
         if (!ispasswordCorrect) {
             return res.json({
-                success: false,
-                message: "Incorrect password. Please try again"
+                success: false, message: "Incorrect password. Please try again", field: "password",
             });
         }
         const token = generateToken(userData._id)
