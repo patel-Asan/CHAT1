@@ -82,8 +82,7 @@ const HomePage = () => {
         <div
           ref={chatContainerRef}
           style={{
-            overflowY: "auto",
-            scrollBehavior: "smooth",
+            overflow: "hidden",
             position: "relative",
             background: "rgba(17,24,39,0.6)",
           }}
