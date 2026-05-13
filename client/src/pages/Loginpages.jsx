@@ -19,10 +19,37 @@ const LoginPage = () => {
     setFieldErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
+  const validate = () => {
+    const errors = {};
+    if (currState === "Sign up" && !isDataSubmitted && !fullName.trim()) {
+      errors.fullName = "Name is required";
+    }
+    if (fullName.trim() && fullName.trim().length < 2) {
+      errors.fullName = "Name must be at least 2 characters";
+    }
+    if (!email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errors.email = "Invalid email format";
+    }
+    if (!password) {
+      errors.password = "Password is required";
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+    }
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      return;
+    }
     if (currState === "Sign up" && !isDataSubmitted) {
       setIsDataSubmitted(true);
+      setFieldErrors({});
       return;
     }
     const res = await login(currState === "Sign up" ? "signup" : "login", {
