@@ -238,60 +238,61 @@ const Side = () => {
       color: "#fff", maxWidth: "100%", display: "flex", flexDirection: "column",
       boxSizing: "border-box",
     }}>
-      {/* Top Section */}
-      <div style={{ paddingBottom: "10px", flexShrink: 0 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>
-          <img src={assets.logo} alt="logo" style={{ maxWidth: isMobile ? "90px" : "120px", height: "auto" }} />
-          <div>
-            <img src={assets.menu_icon} alt="Menu"
-              style={{ maxHeight: "20px", cursor: "pointer", opacity: 0.7 }}
-              onClick={() => setMenuOpen((prev) => !prev)} />
-            {menuOpen && (
-              <div style={{
-                position: "absolute", top: "100%", right: 0, zIndex: 50,
-                width: isMobile ? "150px" : "160px", padding: "6px",
-                borderRadius: "10px", backgroundColor: "#1e293b",
-                border: "1px solid #334155", color: "#E5E7EB",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
-              }}>
-                <p onClick={() => { navigate("/profile"); setMenuOpen(false); }}
-                  style={{ cursor: "pointer", fontSize: "14px", padding: "8px 12px", borderRadius: "6px", margin: 0 }}>
-                  👤 Edit Profile
-                </p>
-                <p onClick={() => { navigate("/profile?tab=theme"); setMenuOpen(false); }}
-                  style={{ cursor: "pointer", fontSize: "14px", padding: "8px 12px", borderRadius: "6px", margin: 0 }}>
-                  🎨 Themes
-                </p>
-                <p onClick={() => { navigate("/profile?tab=blocked"); setMenuOpen(false); }}
-                  style={{ cursor: "pointer", fontSize: "14px", padding: "8px 12px", borderRadius: "6px", margin: 0 }}>
-                  🚫 Blocked Users
-                </p>
-                <hr style={{ margin: "4px 0", borderColor: "#334155" }} />
-                <p onClick={() => { logout(); setMenuOpen(false); }}
-                  style={{ cursor: "pointer", fontSize: "14px", padding: "8px 12px", borderRadius: "6px", margin: 0, color: "#F87171" }}>
-                  Logout
-                </p>
-              </div>
-            )}
+      {/* Top Section + Tabs (sticky) */}
+      <div style={{ flexShrink: 0, position: "sticky", top: 0, zIndex: 10, background: "rgba(129,133,178,0.08)", paddingBottom: "4px" }}>
+        <div style={{ paddingBottom: "6px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>
+            <img src={assets.logo} alt="logo" style={{ maxWidth: isMobile ? "90px" : "120px", height: "auto" }} />
+            <div>
+              <img src={assets.menu_icon} alt="Menu"
+                style={{ maxHeight: "20px", cursor: "pointer", opacity: 0.7 }}
+                onClick={() => setMenuOpen((prev) => !prev)} />
+              {menuOpen && (
+                <div style={{
+                  position: "absolute", top: "100%", right: 0, zIndex: 50,
+                  width: isMobile ? "150px" : "160px", padding: "6px",
+                  borderRadius: "10px", backgroundColor: "#1e293b",
+                  border: "1px solid #334155", color: "#E5E7EB",
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+                }}>
+                  <p onClick={() => { navigate("/profile"); setMenuOpen(false); }}
+                    style={{ cursor: "pointer", fontSize: "14px", padding: "8px 12px", borderRadius: "6px", margin: 0 }}>
+                    👤 Edit Profile
+                  </p>
+                  <p onClick={() => { navigate("/profile?tab=theme"); setMenuOpen(false); }}
+                    style={{ cursor: "pointer", fontSize: "14px", padding: "8px 12px", borderRadius: "6px", margin: 0 }}>
+                    🎨 Themes
+                  </p>
+                  <p onClick={() => { navigate("/profile?tab=blocked"); setMenuOpen(false); }}
+                    style={{ cursor: "pointer", fontSize: "14px", padding: "8px 12px", borderRadius: "6px", margin: 0 }}>
+                    🚫 Blocked Users
+                  </p>
+                  <hr style={{ margin: "4px 0", borderColor: "#334155" }} />
+                  <p onClick={() => { logout(); setMenuOpen(false); }}
+                    style={{ cursor: "pointer", fontSize: "14px", padding: "8px 12px", borderRadius: "6px", margin: 0, color: "#F87171" }}>
+                    Logout
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Search */}
+          <div style={{
+            backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "10px",
+            display: "flex", alignItems: "center", gap: "8px",
+            padding: isMobile ? "8px 12px" : "10px 14px",
+            marginTop: isMobile ? "10px" : "12px", border: "1px solid rgba(255,255,255,0.05)",
+          }}>
+            <img src={assets.search_icon} alt="" style={{ width: "14px", opacity: 0.5 }} />
+            <input value={search} onChange={(e) => setSearch(e.target.value)}
+              type="text" placeholder={tab === "groups" ? "Search groups..." : "Search users..."}
+              style={{ background: "transparent", border: "none", outline: "none", color: "#fff", flex: 1, fontSize: isMobile ? "16px" : "13px" }} />
           </div>
         </div>
 
-        {/* Search */}
-        <div style={{
-          backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "10px",
-          display: "flex", alignItems: "center", gap: "8px",
-          padding: isMobile ? "8px 12px" : "10px 14px",
-          marginTop: isMobile ? "10px" : "12px", border: "1px solid rgba(255,255,255,0.05)",
-        }}>
-          <img src={assets.search_icon} alt="" style={{ width: "14px", opacity: 0.5 }} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            type="text" placeholder={tab === "groups" ? "Search groups..." : "Search users..."}
-            style={{ background: "transparent", border: "none", outline: "none", color: "#fff", flex: 1, fontSize: isMobile ? "16px" : "13px" }} />
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: "4px", marginBottom: isMobile ? "8px" : "12px", flexShrink: 0 }}>
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
         <button onClick={() => { setTab("chats"); setSelectedGroup(null); }}
           style={{
             flex: 1, padding: isMobile ? "7px" : "8px", borderRadius: "8px", border: "none",
@@ -310,6 +311,7 @@ const Side = () => {
           }}>
           <FaUsers size={14} /> Groups
         </button>
+      </div>
       </div>
 
       {/* Content */}
