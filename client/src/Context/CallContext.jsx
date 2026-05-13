@@ -30,6 +30,7 @@ export const CallProvider = ({ children }) => {
   const callStartRef = useRef(null);
   const pendingOfferRef = useRef(null);
   const callStateRef = useRef(CALL_STATES.IDLE);
+  const [connectionFailed, setConnectionFailed] = useState(false);
 
   const config = {
     iceServers: [
@@ -39,6 +40,7 @@ export const CallProvider = ({ children }) => {
       { urls: "stun:stun3.l.google.com:19302" },
       { urls: "stun:stun4.l.google.com:19302" },
     ],
+    iceCandidatePoolSize: 10,
   };
 
   const cleanupStreams = () => {
@@ -64,6 +66,7 @@ export const CallProvider = ({ children }) => {
     callStateRef.current = CALL_STATES.IDLE;
     setRemoteUser(null);
     setCallDirection(null);
+    setConnectionFailed(false);
     callIdRef.current = null;
     callStartRef.current = null;
     pendingOfferRef.current = null;
@@ -99,6 +102,14 @@ export const CallProvider = ({ children }) => {
         }
       };
 
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === "failed") {
+          setConnectionFailed(true);
+        } else if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+          setConnectionFailed(false);
+        }
+      };
+
       pc.ontrack = (e) => {
         setRemoteStream(e.streams[0]);
       };
@@ -110,7 +121,11 @@ export const CallProvider = ({ children }) => {
       socket.emit("call:start", { to: user._id, room: authUser._id, callId, type: video ? "video" : "audio" });
     } catch (err) {
       if (err.name === "NotAllowedError") {
-        alert("Camera/microphone access denied. Please allow permissions.");
+        alert("Camera/Microphone access denied. Please allow permissions in browser settings.");
+      } else if (err.name === "NotFoundError") {
+        alert("Camera or microphone not found. Check your devices.");
+      } else if (err.name === "NotReadableError") {
+        alert("Camera or microphone is busy (used by another app). Close other apps and try again.");
       } else {
         alert("Could not start call: " + err.message);
       }
@@ -142,6 +157,14 @@ export const CallProvider = ({ children }) => {
         }
       };
 
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === "failed") {
+          setConnectionFailed(true);
+        } else if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+          setConnectionFailed(false);
+        }
+      };
+
       pc.ontrack = (e) => {
         setRemoteStream(e.streams[0]);
       };
@@ -157,7 +180,15 @@ export const CallProvider = ({ children }) => {
 
       socket.emit("call:accept", { to: remoteUser._id, room: authUser._id });
     } catch (err) {
-      alert("Could not access camera/microphone");
+      if (err.name === "NotAllowedError") {
+        alert("Camera/Microphone access denied. Please allow permissions in browser settings.");
+      } else if (err.name === "NotFoundError") {
+        alert("Camera or microphone not found. Check your devices.");
+      } else if (err.name === "NotReadableError") {
+        alert("Camera or microphone is busy (used by another app). Close other apps and try again.");
+      } else {
+        alert("Could not access camera/microphone: " + err.message);
+      }
       resetCall();
     }
   };
@@ -326,6 +357,7 @@ export const CallProvider = ({ children }) => {
     localStream,
     remoteStream,
     callDirection,
+    connectionFailed,
     localVideoRef,
     remoteVideoRef,
     startCall,

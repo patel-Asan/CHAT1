@@ -9,7 +9,7 @@ import assets from "../assest/assets";
 const VideoCallModal = () => {
   const {
     callState, CALL_STATES, remoteUser, isVideo,
-    localStream, remoteStream, callDirection,
+    localStream, remoteStream, callDirection, connectionFailed,
     acceptCall, rejectCall, endCall,
     toggleVideo, toggleAudio, resetCall,
   } = useContext(CallContext);
@@ -105,46 +105,59 @@ const VideoCallModal = () => {
       <div style={backdropStyle}>
         <div style={{
           position: "relative", width: "100%", maxWidth: "700px",
-          height: isVideo ? "70vh" : "auto",
+          height: isVideo ? "70vh" : "350px",
           borderRadius: "16px", overflow: "hidden",
           background: "#0f172a",
         }}>
-          {/* Remote video/audio — always rendered so audio plays even in audio-only calls */}
-          <video ref={remoteRef} autoPlay playsInline
-            style={{
-              width: isVideo ? "100%" : "0",
-              height: isVideo ? "100%" : "0",
-              objectFit: "cover",
-              position: isVideo ? "static" : "absolute",
-              opacity: isVideo ? 1 : 0,
-              pointerEvents: isVideo ? "auto" : "none",
-            }} />
+          {/* Remote video */}
+          {isVideo ? (
+            <video ref={remoteRef} autoPlay playsInline
+              style={{
+                width: "100%", height: "100%", objectFit: "cover",
+              }} />
+          ) : (
+            <audio ref={remoteRef} autoPlay playsInline />
+          )}
+
+          {/* Connection failure warning */}
+          {connectionFailed && (
+            <div style={{
+              position: "absolute", top: "12px", left: "50%", transform: "translateX(-50%)",
+              background: "rgba(239,68,68,0.9)", color: "#fff",
+              padding: "8px 16px", borderRadius: "8px",
+              fontSize: "13px", fontWeight: "600",
+              zIndex: 10,
+            }}>
+              ⚠ Connection lost. Audio may not work.
+            </div>
+          )}
 
           {/* Audio-only avatar */}
           {!isVideo && (
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", height: "300px",
+              justifyContent: "center", height: "100%",
             }}>
               <img src={remoteUser?.profilePic || assets.avatar_icon} alt=""
                 style={{ width: "100px", height: "100px", borderRadius: "50%", objectFit: "cover", marginBottom: "16px" }} />
               <h3 style={{ color: "#fff", margin: 0 }}>{name}</h3>
-              <p style={{ color: "#22c55e", fontSize: "13px", marginTop: "4px" }}>● Connected</p>
+              <p style={{ color: connectionFailed ? "#ef4444" : "#22c55e", fontSize: "13px", marginTop: "4px" }}>
+                {connectionFailed ? "⚠ Disconnected" : "● Connected"}
+              </p>
             </div>
           )}
 
-          {/* Local video (PIP) — always rendered for audio too */}
-          <video ref={localRef} autoPlay playsInline muted
-            style={{
-              position: "absolute", bottom: "80px", right: "16px",
-              width: isVideo ? "120px" : "0",
-              height: isVideo ? "160px" : "0",
-              borderRadius: "12px",
-              objectFit: "cover", border: isVideo ? "2px solid rgba(255,255,255,0.2)" : "none",
-              background: "#1e293b", transform: "scaleX(-1)",
-              opacity: isVideo ? 1 : 0,
-              pointerEvents: isVideo ? "auto" : "none",
-            }} />
+          {/* Local video (PIP) — only for video calls */}
+          {isVideo && (
+            <video ref={localRef} autoPlay playsInline muted
+              style={{
+                position: "absolute", bottom: "80px", right: "16px",
+                width: "120px", height: "160px",
+                borderRadius: "12px",
+                objectFit: "cover", border: "2px solid rgba(255,255,255,0.2)",
+                background: "#1e293b", transform: "scaleX(-1)",
+              }} />
+          )}
 
           {/* Controls */}
           <div style={{
