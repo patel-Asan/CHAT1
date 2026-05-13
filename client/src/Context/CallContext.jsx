@@ -75,6 +75,10 @@ export const CallProvider = ({ children }) => {
   // Start a call
   const startCall = async (user, video = true) => {
     if (!user || !socket) return;
+    if (!window.isSecureContext) {
+      alert("Camera/microphone only works on HTTPS or localhost. Please open this site with https://");
+      return;
+    }
     const callId = `${authUser._id}_${Date.now()}`;
     callIdRef.current = callId;
     callStartRef.current = Date.now();
@@ -136,6 +140,10 @@ export const CallProvider = ({ children }) => {
   // Accept incoming call
   const acceptCall = async () => {
     if (!socket || !remoteUser) return;
+    if (!window.isSecureContext) {
+      alert("Camera/microphone only works on HTTPS or localhost. Please open this site with https://");
+      return;
+    }
     setCallState(CALL_STATES.CONNECTED);
     callStateRef.current = CALL_STATES.CONNECTED;
 
