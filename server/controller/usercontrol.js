@@ -63,7 +63,7 @@ export const login = async (req, res) => {
         if (!userData) {
             return res.json({
                 success: false,
-                message: "User not found"
+                message: "No account found with this email"
             });
         }
 
@@ -72,7 +72,7 @@ export const login = async (req, res) => {
         if (!ispasswordCorrect) {
             return res.json({
                 success: false,
-                message: "Invalid credentials"
+                message: "Incorrect password. Please try again"
             });
         }
         const token = generateToken(userData._id)
