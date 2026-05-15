@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import assets from "../assest/assets";
-import { formatMessageTime, getReactionCount, isMuted, extractUrls, compressImage, debounce } from "../lib/util";
+import { formatMessageTime, formatDate, getReactionCount, isMuted, extractUrls, compressImage, debounce } from "../lib/util";
 import { AuthContext } from "../Context/AuthContext";
 import { ChatContext } from "../Context/ChatContext";
 import { getTheme, themes } from "../lib/themes";
@@ -416,6 +416,19 @@ const ChatContainer = () => {
     const msgs = (messages || []).map((m) => ({ ...m, _isCall: false }));
     return [...calls, ...msgs].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   }, [callHistory, messages]);
+
+  const chatRenderItems = useMemo(() => {
+    if (!chatEntries) return [];
+    const items = [];
+    chatEntries.forEach((entry, idx) => {
+      const prevEntry = chatEntries[idx - 1];
+      if (!prevEntry || new Date(entry.createdAt).toDateString() !== new Date(prevEntry.createdAt).toDateString()) {
+        items.push({ _isDateSeparator: true, date: entry.createdAt, key: `date-${idx}` });
+      }
+      items.push(entry);
+    });
+    return items;
+  }, [chatEntries]);
 
   const formatDuration = (sec) => {
     if (!sec) return "";
@@ -911,7 +924,25 @@ const ChatContainer = () => {
 
       {/* MESSAGES */}
       <div style={messageListStyle} className="chat-messages" onScroll={handleScroll}>
-        {chatEntries?.map((entry, index) => {
+        {chatRenderItems?.map((item, idx) => {
+          if (item._isDateSeparator) {
+            return (
+              <div key={item.key} style={{
+                display: "flex", justifyContent: "center",
+                margin: "16px 0 8px",
+              }}>
+                <span style={{
+                  background: "rgba(255,255,255,0.06)",
+                  color: "#94a3b8", fontSize: "11px",
+                  padding: "4px 12px", borderRadius: "12px",
+                  fontWeight: 500,
+                }}>
+                  {formatDate(item.date)}
+                </span>
+              </div>
+            );
+          }
+          const entry = item;
           if (entry._isCall) {
             const isCaller = String(entry.caller?._id || entry.caller) === String(authUser?._id);
             const callStatus = entry.status;
@@ -930,7 +961,7 @@ const ChatContainer = () => {
               color = "#ef4444";
             }
             return (
-              <div key={index} style={{
+              <div key={idx} style={{
                 display: "flex", alignItems: "center", justifyContent: "center",
                 marginBottom: "4px", padding: "8px 0",
               }}>
@@ -962,7 +993,7 @@ const ChatContainer = () => {
 
           if (msg?.deleted) {
             return (
-              <div key={index} style={{
+              <div key={idx} style={{
                 display: "flex", justifyContent: isOwn ? "flex-end" : "flex-start",
                 marginBottom: "4px",
               }}>
@@ -986,7 +1017,7 @@ const ChatContainer = () => {
 
           return (
             <div
-              key={index}
+              key={idx}
               style={{
                 display: "flex", alignItems: "flex-end", gap: "6px",
                 justifyContent: isOwn ? "flex-end" : "flex-start",
